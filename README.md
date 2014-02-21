@@ -27,7 +27,7 @@ If you use the sprite tool, the new flow is:
 
 Just named the images by rules and indicate the folder which the "png" images in. Click button "Go"
 
-###Referance###
+###Reference###
 
 Here are the rules of image naming(left: image file name without extension, right: class name):
 
