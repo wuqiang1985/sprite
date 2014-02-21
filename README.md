@@ -56,4 +56,6 @@ The sprite tool will process the file name end with as "-hover" or "_hover"  to 
 
 The others pseudo class (":link, :visited, :hover, :active, :focus, :before, :after, :lang") will be processed the same way too.
 
+###Environment###
+windows .net framework 2.0 or later
 
