@@ -83,16 +83,25 @@ namespace WindowsFormsApplication1
             {
                 string[] images = Directory.GetFiles(path, "*.png", SearchOption.AllDirectories);
 
-                SpriteType type = rbtnVertical.Checked ? SpriteType.Vertical : SpriteType.Horizontal;
-
-                Bitmap mergedImage = CombineBitmap(images, type);
-                mergedImage.Save(string.Format("{0}\\sprite.png", AppDomain.CurrentDomain.BaseDirectory));
-
-                MessageBox.Show("The sprite image and style have been generated successfully! :)");
+                switch (images.Length)
+                {
+                    case 0:
+                        MessageBox.Show(string.Format("There is none of a png iamge in {0}, please change a folder or add png images here.", path), "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        break;
+                    case 1:
+                        MessageBox.Show(string.Format("There is only one png file in {0}, it doesn't need to combime.", path), "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        break;
+                    default:
+                        SpriteType type = rbtnVertical.Checked ? SpriteType.Vertical : SpriteType.Horizontal;
+                        Bitmap mergedImage = CombineBitmap(images, type);
+                        mergedImage.Save(string.Format("{0}\\sprite.png", AppDomain.CurrentDomain.BaseDirectory));
+                        MessageBox.Show("The sprite image and style have been generated successfully! :)", "successful", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        break;
+                }
             }
             else
             {
-                MessageBox.Show("Please select the path");
+                MessageBox.Show("Please select the image path via clicking the \"Browser...\" button", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 
@@ -285,6 +294,7 @@ namespace WindowsFormsApplication1
         private void sprite_HelpButtonClicked(object sender, CancelEventArgs e)
         {
             MessageBox.Show(@"Here are the rules of image naming:
+
 wechat => .wechat
 wechat_hover => .wechat:hover
 wechat-hover => .wechat:hover
@@ -294,7 +304,11 @@ wechat.ibg => .wechat .ibg
 wechat.ibg.wechat_focus => .wechat .ibg .wechat:focus
 wechat.ibg.wechat_none => .wechat .ibg . wechat_none
 wechat_hover.wechat_none => .wechat:hover .wechat_none
-wechat-hover.wechat-none => .wechat:hover .wechat-none");
+wechat-hover.wechat-none => .wechat:hover .wechat-none
+
+For more information, please visit: https://github.com/wuqiang1985/sprite
+",
+ "image naming rule", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
     }
 }

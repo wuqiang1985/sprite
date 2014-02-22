@@ -62,5 +62,5 @@ windows .net framework 2.0 or later
 ###Other###
 Someone maybe will say: "why not use Sass and compass, it has the sprite feature too".
 
-Well Sass is awesome, but you need to stady it. I just provide another option for you.
+Well Sass is awesome, but you need to study it. I just provide another option for you.
 
