@@ -29,7 +29,7 @@ Just named the images by rules and indicate the folder which the "png" images in
 
 ###Reference###
 
-Here are the rules of image naming(left: image file name without extension, right: class name):
+Here are the rules of image naming ( left: image file name without extension, right: class name )
 
 wechat => .wechat
 
