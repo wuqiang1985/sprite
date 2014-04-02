@@ -6,12 +6,13 @@ using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
 using System.IO;
+using System.Text.RegularExpressions;
 using System.Diagnostics;
 
 
 namespace WindowsFormsApplication1
 {
-    public enum SpriteType
+    enum SpriteType
     {
         Vertical,
         Horizontal
@@ -38,8 +39,13 @@ namespace WindowsFormsApplication1
         const string IMAGE_STILE_V = "\t\t{0} {{ width: {1}px; height: {2}px; background-position: 0 {3}px; }}{4}";
         const string IMAGE_STILE_H = "\t\t{0} {{ width: {1}px; height: {2}px; background-position: {3}px 0; }}{4}";
         const string IMAGE_CONTAINER = "\t<a class=\"sprite {0}\"></a>{1}";
+        const string COMPRESS_CMD = "optipng.exe -clobber -quiet -out sprite.png sprite_uncompressed.png";
+        const string IMAGE_NAME = "sprite.png";
+        const string IAMGE_BAK = "sprite.png.bak";
+        const string IMAGE_UNCOMPRESSED_NAME = "sprite_uncompressed.png";
 
         static List<string> pseudoClassList;
+        static string path = AppDomain.CurrentDomain.BaseDirectory;
 
         public sprite()
         {
@@ -77,24 +83,30 @@ namespace WindowsFormsApplication1
 
         private void btnGo_Click(object sender, EventArgs e)
         {
-            string path = txtPath.Text.Trim();
+            string imagePath = txtPath.Text.Trim();
 
-            if (!string.IsNullOrEmpty(path))
+            if (!string.IsNullOrEmpty(imagePath))
             {
-                string[] images = Directory.GetFiles(path, "*.png", SearchOption.AllDirectories);
+                string[] images = Directory.GetFiles(imagePath, "*.png", SearchOption.AllDirectories);
 
                 switch (images.Length)
                 {
                     case 0:
-                        MessageBox.Show(string.Format("There is none of a png iamge in {0}, please change a folder or add png images here.", path), "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        MessageBox.Show(string.Format("There is none of a png iamge in {0}, please change a folder or add png images here.", imagePath), "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                         break;
                     case 1:
-                        MessageBox.Show(string.Format("There is only one png file in {0}, it doesn't need to combime.", path), "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        MessageBox.Show(string.Format("There is only one png file in {0}, it doesn't need to combime.", imagePath), "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                         break;
                     default:
+                        bool compressed = chkCompress.Checked;
+                        string imageName = compressed ? IMAGE_UNCOMPRESSED_NAME : IMAGE_NAME;
                         SpriteType type = rbtnVertical.Checked ? SpriteType.Vertical : SpriteType.Horizontal;
                         Bitmap mergedImage = CombineBitmap(images, type);
-                        mergedImage.Save(string.Format("{0}\\sprite.png", AppDomain.CurrentDomain.BaseDirectory));
+                        mergedImage.Save(string.Format("{0}\\{1}", path, imageName));
+                        if (compressed)
+                        {
+                            CompressImgae();
+                        }
                         MessageBox.Show("The sprite image and style have been generated successfully! :)", "successful", MessageBoxButtons.OK, MessageBoxIcon.Information);
                         break;
                 }
@@ -110,7 +122,7 @@ namespace WindowsFormsApplication1
             //read all images into memory
             List<Bitmap> images = new List<Bitmap>();
             Bitmap finalImage = null;
-
+            
             try
             {
                 int width = 0;
@@ -187,7 +199,8 @@ namespace WindowsFormsApplication1
                     }
                 }
 
-                WriteFile(imageStyle.ToString(), iamgeContainer.ToString());
+                string styleStr = SortStyle(imageStyle.ToString());
+                WriteFile(styleStr, iamgeContainer.ToString());
 
                 return finalImage;
             }
@@ -204,6 +217,89 @@ namespace WindowsFormsApplication1
                 foreach (Bitmap image in images)
                 {
                     image.Dispose();
+                }
+            }
+        }
+
+        private static string SortStyle(string style)
+        {
+            string result = style;
+            if (style.IndexOf(":active") > -1 && style.IndexOf(":hover") > -1)
+            {
+                Regex regex = new Regex(@"(\t\t.*:(?:active|hover).*\r\n)", RegexOptions.Multiline);
+                MatchCollection matches = regex.Matches(result);
+                int index = 0;
+                List<string> list = new List<string>();
+
+                foreach (Match match in matches)
+                {
+                    // .appmsg:active { width: 50px; height: 56px; background-position: 0 -56px; }
+                    // .appmsg:hover { width: 50px; height: 56px; background-position: 0 -112px; }
+                    string temp = match.Groups[0].Value;
+                    Match m = Regex.Match(temp, @"\t\t(.*):(active|hover).*");
+                    if (m.Success)
+                    {
+                        if (m.Groups[2].Value == "active")
+                        {
+                            // active
+                            string nextRow = matches[index + 1].Groups[0].Value;
+                            if (nextRow.IndexOf(string.Format("{0}:hover", m.Groups[1])) > -1)
+                            {
+                                list.Add(temp);
+                                list.Add(nextRow);
+                            }
+                        }
+                    }
+
+                    index++;
+                }
+
+                int length = list.Count;
+                for (index = 0; index < length; index++)
+                {
+                    if (index % 2 == 0)
+                    {
+                        // in active mode
+                        result = result.Replace(list[index + 1], list[index].Replace("active","wuqiang"));
+                        // active => hover
+                        result = result.Replace(list[index], list[index + 1]);                        
+                    }
+                }
+
+                result = result.Replace("wuqiang", "active");
+            }
+
+            return result;
+        }
+
+        private static void CompressImgae()
+        {
+            Process process = new Process();
+            ProcessStartInfo startInfo = new ProcessStartInfo();
+            startInfo.WorkingDirectory = path;
+            startInfo.FileName = "cmd.exe";
+            startInfo.Arguments = "/c" + COMPRESS_CMD;
+            startInfo.WindowStyle = ProcessWindowStyle.Hidden;
+            process.StartInfo = startInfo;
+
+            try
+            {
+                if (process.Start())
+                {
+                    process.WaitForExit();
+                }
+            }
+            catch { }
+            finally
+            {
+                if (process != null)
+                {
+                    process.Close();
+                    string imageBak = string.Format("{0}/{1}", path, IAMGE_BAK);
+                    if (File.Exists(imageBak))
+                    {
+                        File.Delete(imageBak);
+                    }
                 }
             }
         }
@@ -269,7 +365,7 @@ namespace WindowsFormsApplication1
 
         private static void WriteFile(string style, string container)
         {
-            string filePath = string.Format("{0}\\sprite.html", AppDomain.CurrentDomain.BaseDirectory);
+            string filePath = string.Format("{0}\\sprite.html", path);
 
             StreamWriter sw = new StreamWriter(filePath, false, Encoding.UTF8);
             sw.Write(string.Format(HTML_TEMPLATE, style, container));

@@ -38,6 +38,7 @@
             this.rbtnHorizontal = new System.Windows.Forms.RadioButton();
             this.label1 = new System.Windows.Forms.Label();
             this.llMail = new System.Windows.Forms.LinkLabel();
+            this.chkCompress = new System.Windows.Forms.CheckBox();
             this.groupBox1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -122,11 +123,22 @@
             this.llMail.Text = "wuqiang";
             this.llMail.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.llMail_LinkClicked);
             // 
+            // chkCompress
+            // 
+            this.chkCompress.AutoSize = true;
+            this.chkCompress.Location = new System.Drawing.Point(200, 73);
+            this.chkCompress.Name = "chkCompress";
+            this.chkCompress.Size = new System.Drawing.Size(72, 16);
+            this.chkCompress.TabIndex = 8;
+            this.chkCompress.Text = "Compress";
+            this.chkCompress.UseVisualStyleBackColor = true;
+            // 
             // sprite
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(386, 179);
+            this.Controls.Add(this.chkCompress);
             this.Controls.Add(this.llMail);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.groupBox1);
@@ -159,6 +171,7 @@
         private System.Windows.Forms.RadioButton rbtnHorizontal;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.LinkLabel llMail;
+        private System.Windows.Forms.CheckBox chkCompress;
     }
 }
 
