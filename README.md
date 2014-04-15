@@ -64,3 +64,10 @@ Someone maybe will say: "why not use Sass and compass, it has the sprite feature
 
 Well Sass is awesome, but you need to study it. I just provide another option for you.
 
+###Changelog###
+v1.0 (14/02/2014) - hello, world. I am coming.
+
+v1.1 (02/04/2014) - add compression for generated png;
+                    adjust pseudo class order(make the hover before active) in generated html;
+       
+
