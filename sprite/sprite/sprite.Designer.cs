@@ -39,12 +39,14 @@
             this.label1 = new System.Windows.Forms.Label();
             this.llMail = new System.Windows.Forms.LinkLabel();
             this.chkCompress = new System.Windows.Forms.CheckBox();
+            this.btnCompress = new System.Windows.Forms.Button();
+            this.chkAll = new System.Windows.Forms.CheckBox();
             this.groupBox1.SuspendLayout();
             this.SuspendLayout();
             // 
             // btnGo
             // 
-            this.btnGo.Location = new System.Drawing.Point(290, 69);
+            this.btnGo.Location = new System.Drawing.Point(290, 113);
             this.btnGo.Name = "btnGo";
             this.btnGo.Size = new System.Drawing.Size(75, 23);
             this.btnGo.TabIndex = 0;
@@ -54,7 +56,7 @@
             // 
             // btnBrowser
             // 
-            this.btnBrowser.Location = new System.Drawing.Point(290, 23);
+            this.btnBrowser.Location = new System.Drawing.Point(200, 23);
             this.btnBrowser.Name = "btnBrowser";
             this.btnBrowser.Size = new System.Drawing.Size(75, 23);
             this.btnBrowser.TabIndex = 1;
@@ -67,7 +69,7 @@
             this.txtPath.Location = new System.Drawing.Point(12, 25);
             this.txtPath.Name = "txtPath";
             this.txtPath.ReadOnly = true;
-            this.txtPath.Size = new System.Drawing.Size(260, 21);
+            this.txtPath.Size = new System.Drawing.Size(176, 21);
             this.txtPath.TabIndex = 2;
             // 
             // rbtnVertical
@@ -88,10 +90,10 @@
             this.groupBox1.Controls.Add(this.rbtnVertical);
             this.groupBox1.Location = new System.Drawing.Point(12, 52);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(176, 42);
+            this.groupBox1.Size = new System.Drawing.Size(176, 47);
             this.groupBox1.TabIndex = 5;
             this.groupBox1.TabStop = false;
-            this.groupBox1.Text = "Sprite order";
+            this.groupBox1.Text = "Sprite Direction";
             // 
             // rbtnHorizontal
             // 
@@ -126,18 +128,40 @@
             // chkCompress
             // 
             this.chkCompress.AutoSize = true;
-            this.chkCompress.Location = new System.Drawing.Point(200, 73);
+            this.chkCompress.Location = new System.Drawing.Point(290, 73);
             this.chkCompress.Name = "chkCompress";
             this.chkCompress.Size = new System.Drawing.Size(72, 16);
             this.chkCompress.TabIndex = 8;
             this.chkCompress.Text = "Compress";
             this.chkCompress.UseVisualStyleBackColor = true;
             // 
+            // btnCompress
+            // 
+            this.btnCompress.Location = new System.Drawing.Point(290, 23);
+            this.btnCompress.Name = "btnCompress";
+            this.btnCompress.Size = new System.Drawing.Size(75, 23);
+            this.btnCompress.TabIndex = 9;
+            this.btnCompress.Text = "Compress";
+            this.btnCompress.UseVisualStyleBackColor = true;
+            this.btnCompress.Click += new System.EventHandler(this.btnCompress_Click);
+            // 
+            // chkAll
+            // 
+            this.chkAll.AutoSize = true;
+            this.chkAll.Location = new System.Drawing.Point(200, 73);
+            this.chkAll.Name = "chkAll";
+            this.chkAll.Size = new System.Drawing.Size(84, 16);
+            this.chkAll.TabIndex = 10;
+            this.chkAll.Text = "All in one";
+            this.chkAll.UseVisualStyleBackColor = true;
+            // 
             // sprite
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(386, 179);
+            this.Controls.Add(this.chkAll);
+            this.Controls.Add(this.btnCompress);
             this.Controls.Add(this.chkCompress);
             this.Controls.Add(this.llMail);
             this.Controls.Add(this.label1);
@@ -172,6 +196,8 @@
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.LinkLabel llMail;
         private System.Windows.Forms.CheckBox chkCompress;
+        private System.Windows.Forms.Button btnCompress;
+        private System.Windows.Forms.CheckBox chkAll;
     }
 }
 

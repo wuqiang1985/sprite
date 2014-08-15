@@ -26,9 +26,23 @@ namespace WindowsFormsApplication1
 <html lang=""en"">
 <head>
 	<meta charset=""UTF-8"">
-	<title>Sprite Test</title>
+	<title>{2}</title>
 	<style>
-		.sprite {{ background: url(sprite.png); display: block; }}
+		.{2} {{ background: url({2}.png); display: block; }}
+		{0}
+	</style>
+</head>
+<body>
+	{1}
+</body>
+</html>";
+        const string ALL_HTML_TEMPLATE = @"
+<!doctype html>
+<html lang=""en"">
+<head>
+	<meta charset=""UTF-8"">
+	<title>All in one</title>
+	<style>
 		{0}
 	</style>
 </head>
@@ -38,14 +52,20 @@ namespace WindowsFormsApplication1
 </html>";
         const string IMAGE_STILE_V = "\t\t{0} {{ width: {1}px; height: {2}px; background-position: 0 {3}px; }}{4}";
         const string IMAGE_STILE_H = "\t\t{0} {{ width: {1}px; height: {2}px; background-position: {3}px 0; }}{4}";
-        const string IMAGE_CONTAINER = "\t<a class=\"sprite {0}\"></a>{1}";
-        const string COMPRESS_CMD = "optipng.exe -clobber -quiet -out sprite.png sprite_uncompressed.png";
+        const string IMAGE_CONTAINER = "\t<a class=\"{2} {0}\"></a>{1}";
+        const string COMPRESS_CMD = "optipng.exe sprite_uncompressed.png -clobber -quiet -out sprite.png";
+        const string COMPRESS_FOLDER_CMD = "optipng.exe {0} -clobber -quiet -dir {1}";
+        const string IMAGE_FILE = "sprite";
         const string IMAGE_NAME = "sprite.png";
         const string IAMGE_BAK = "sprite.png.bak";
         const string IMAGE_UNCOMPRESSED_NAME = "sprite_uncompressed.png";
+        const string COMPRESS_FOLDER = "compressed";
 
         static List<string> pseudoClassList;
         static string path = AppDomain.CurrentDomain.BaseDirectory;
+
+        StringBuilder sbForStyle;
+        StringBuilder sbForHtml;
 
         public sprite()
         {
@@ -81,34 +101,78 @@ namespace WindowsFormsApplication1
             #endregion
         }
 
+        private bool MakeDirectory(List<string> directories, string imagePath)
+        {
+            string rootDirectory = Path.GetDirectoryName(imagePath) + @"\";
+
+            try
+            {
+                foreach (string directory in directories)
+                {
+                    string dir = directory.Replace(rootDirectory, string.Empty);
+                    string newDir = Path.Combine(path, dir);
+
+                    Directory.CreateDirectory(newDir);
+                }
+
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
         private void btnGo_Click(object sender, EventArgs e)
         {
             string imagePath = txtPath.Text.Trim();
-
             if (!string.IsNullOrEmpty(imagePath))
             {
-                string[] images = Directory.GetFiles(imagePath, "*.png", SearchOption.AllDirectories);
-
-                switch (images.Length)
+                SpriteType type = rbtnVertical.Checked ? SpriteType.Vertical : SpriteType.Horizontal;
+                if (!chkAll.Checked)
                 {
-                    case 0:
-                        MessageBox.Show(string.Format("There is none of a png iamge in {0}, please change a folder or add png images here.", imagePath), "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                        break;
-                    case 1:
-                        MessageBox.Show(string.Format("There is only one png file in {0}, it doesn't need to combime.", imagePath), "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                        break;
-                    default:
-                        bool compressed = chkCompress.Checked;
-                        string imageName = compressed ? IMAGE_UNCOMPRESSED_NAME : IMAGE_NAME;
-                        SpriteType type = rbtnVertical.Checked ? SpriteType.Vertical : SpriteType.Horizontal;
-                        Bitmap mergedImage = CombineBitmap(images, type);
-                        mergedImage.Save(string.Format("{0}\\{1}", path, imageName));
-                        if (compressed)
-                        {
-                            CompressImgae();
-                        }
-                        MessageBox.Show("The sprite image and style have been generated successfully! :)", "successful", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                        break;
+                    // combime images by folder
+                    sbForStyle = new StringBuilder();
+                    sbForHtml = new StringBuilder();
+
+                    List<string> dirList = new List<string>();
+                    dirList.Add(imagePath);
+                    string[] directories = Directory.GetDirectories(imagePath, "*", SearchOption.AllDirectories);
+
+                    foreach (string directory in directories)
+                    {
+                        dirList.Add(directory);
+                    }
+
+                    if (MakeDirectory(dirList, imagePath))
+                    {
+                        CombineBitmapByFolder(dirList, type, imagePath);
+                    }
+                }
+                else
+                {
+                    // combine images all in one
+                    string[] images = Directory.GetFiles(imagePath, "*.png", SearchOption.AllDirectories);
+                    switch (images.Length)
+                    {
+                        case 0:
+                            MessageBox.Show(string.Format("There is none of a png iamge in {0}, please change a folder or add png images here.", imagePath), "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            break;
+                        case 1:
+                            MessageBox.Show(string.Format("There is only one png file in {0}, it doesn't need to combime.", imagePath), "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            break;
+                        default:
+                            bool compressed = chkCompress.Checked;
+                            string imageName = compressed ? IMAGE_UNCOMPRESSED_NAME : IMAGE_NAME;
+                            Bitmap mergedImage = CombineBitmap(images, type, IMAGE_FILE, path);
+                            mergedImage.Save(string.Format("{0}\\{1}", path, imageName));
+                            if (compressed)
+                            {
+                                CompressImgae();
+                            }
+                            MessageBox.Show("The sprite image and style have been generated successfully! :)", "successful", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            break;
+                    }
                 }
             }
             else
@@ -117,7 +181,52 @@ namespace WindowsFormsApplication1
             }
         }
 
-        private static Bitmap CombineBitmap(string[] files, SpriteType spriteType)
+        private void CombineBitmapByFolder(List<string> directories, SpriteType spriteType, string imagePath)
+        {
+            foreach (string directory in directories)
+            {
+                string[] images = Directory.GetFiles(directory, "*.png", SearchOption.TopDirectoryOnly);
+                if (images.Length > 1)
+                {
+
+                    bool compressed = chkCompress.Checked;
+                    string imageName;
+                    string temp;
+                    imageName = temp = Path.GetFileName(directory);
+                    string imageUncompressedName = string.Format("{0}_uncompressed.png", imageName); ;
+                    imageName = compressed ? imageUncompressedName : string.Format("{0}.png", imageName);
+
+                    string rootDirectory = Path.GetDirectoryName(imagePath) + @"\";
+                    string newDir = Path.Combine(path, directory.Replace(rootDirectory, string.Empty));
+                    Bitmap mergedImage = CombineBitmap(images, spriteType, temp, newDir);
+                    mergedImage.Save(string.Format("{0}\\{1}", newDir, imageName));
+                    mergedImage.Save(string.Format("{0}\\{1}", path, imageName));
+                    if (compressed)
+                    {
+                        CompressImgae();
+                    }
+                }
+            }
+
+            ConvertToOne(imagePath);
+
+            MessageBox.Show("The sprite image and style have been generated successfully! :)", "successful", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void ConvertToOne(string imagePath)
+        {
+            string name = Path.GetDirectoryName(imagePath);
+            string currentPath = Path.Combine(path, name);
+
+            string filePath = string.Format("{0}\\allInOne.html", path);
+
+            StreamWriter sw = new StreamWriter(filePath, false, Encoding.UTF8);
+            sw.Write(string.Format(ALL_HTML_TEMPLATE, sbForStyle.ToString(), sbForHtml.ToString()));
+            sw.Close();
+            sw.Dispose();
+        }
+
+        private Bitmap CombineBitmap(string[] files, SpriteType spriteType, string imageName, string directory)
         {
             //read all images into memory
             List<Bitmap> images = new List<Bitmap>();
@@ -128,7 +237,7 @@ namespace WindowsFormsApplication1
                 int width = 0;
                 int height = 0;
                 StringBuilder imageStyle = new StringBuilder();
-                StringBuilder iamgeContainer = new StringBuilder();
+                StringBuilder imageContainer = new StringBuilder();
 
                 foreach (string image in files)
                 {
@@ -146,8 +255,8 @@ namespace WindowsFormsApplication1
 
                         if (className.IndexOf(":") == -1)
                         {
-                            string container = string.Format(IMAGE_CONTAINER, fileName, Environment.NewLine);
-                            iamgeContainer.Append(container);
+                            string container = string.Format(IMAGE_CONTAINER, fileName, Environment.NewLine, imageName);
+                            imageContainer.Append(container);
                         }
 
                         width += bitmap.Width;
@@ -160,8 +269,8 @@ namespace WindowsFormsApplication1
 
                         if (className.IndexOf(":") == -1)
                         {
-                            string container = string.Format(IMAGE_CONTAINER, fileName, Environment.NewLine);
-                            iamgeContainer.Append(container);
+                            string container = string.Format(IMAGE_CONTAINER, fileName, Environment.NewLine, imageName);
+                            imageContainer.Append(container);
                         }
 
                         height += bitmap.Height;
@@ -200,7 +309,15 @@ namespace WindowsFormsApplication1
                 }
 
                 string styleStr = SortStyle(imageStyle.ToString());
-                WriteFile(styleStr, iamgeContainer.ToString());
+                string htmlStr = imageContainer.ToString();
+                WriteFile(styleStr, htmlStr, imageName, directory);
+
+                if (!chkAll.Checked)
+                {
+                    sbForStyle.AppendLine(string.Format("\t.{0} {{ background: url({0}.png); display: block; }}", imageName));
+                    sbForStyle.AppendLine(styleStr);
+                    sbForHtml.AppendLine(htmlStr);
+                }
 
                 return finalImage;
             }
@@ -304,6 +421,34 @@ namespace WindowsFormsApplication1
             }
         }
 
+        private static void CompressImgae(string fileName)
+        {
+            string cmd = string.Format(COMPRESS_FOLDER_CMD, fileName, COMPRESS_FOLDER);
+            Process process = new Process();
+            ProcessStartInfo startInfo = new ProcessStartInfo();
+            startInfo.WorkingDirectory = path;
+            startInfo.FileName = "cmd.exe";
+            startInfo.Arguments = "/c" + cmd;
+            startInfo.WindowStyle = ProcessWindowStyle.Hidden;
+            process.StartInfo = startInfo;
+
+            try
+            {
+                if (process.Start())
+                {
+                    process.WaitForExit();
+                }
+            }
+            catch { }
+            finally
+            {
+                if (process != null)
+                {
+                    process.Close();
+                }
+            }
+        }
+
         private static string GetClassName(string fileName)
         {
             string[] cascading = fileName.Split('.');
@@ -363,12 +508,12 @@ namespace WindowsFormsApplication1
             return string.Empty;
         }
 
-        private static void WriteFile(string style, string container)
+        private static void WriteFile(string style, string container, string imageName, string directory)
         {
-            string filePath = string.Format("{0}\\sprite.html", path);
+            string filePath = string.Format("{0}\\{1}.html", directory, imageName);
 
             StreamWriter sw = new StreamWriter(filePath, false, Encoding.UTF8);
-            sw.Write(string.Format(HTML_TEMPLATE, style, container));
+            sw.Write(string.Format(HTML_TEMPLATE, style, container, imageName));
             sw.Close();
             sw.Dispose();
         }
@@ -405,6 +550,34 @@ wechat-hover.wechat-none => .wechat:hover .wechat-none
 For more information, please visit: https://github.com/wuqiang1985/sprite
 ",
  "image naming rule", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void btnCompress_Click(object sender, EventArgs e)
+        {
+            string imagePath = txtPath.Text.Trim();
+
+            if (!string.IsNullOrEmpty(imagePath))
+            {
+                string[] images = Directory.GetFiles(imagePath, "*.png", SearchOption.AllDirectories);
+
+                switch (images.Length)
+                {
+                    case 0:
+                        MessageBox.Show(string.Format("There is none of a png iamge in {0}, please change a folder or add png images here.", imagePath), "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        break;
+                    default:
+                        foreach (string fileName in images)
+                        {
+                            CompressImgae(fileName);
+                        }
+                        MessageBox.Show("The images have beed compressed successfully! :)", "successful", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        break;
+                }
+            }
+            else
+            {
+                MessageBox.Show("Please select the image path via clicking the \"Browser...\" button", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
         }
     }
 }

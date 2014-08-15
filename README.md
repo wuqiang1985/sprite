@@ -69,5 +69,8 @@ v1.0 (14/02/2014) - hello, world. I am coming.
 
 v1.1 (02/04/2014) - add compression for generated png;
                     adjust pseudo class order(make the hover before active) in generated html;
+                    
+v1.2 (15/08/2014) - add compression for each png in folder, which will output to compressed folder;
+                    Generate by folder;
        
 
