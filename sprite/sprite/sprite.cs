@@ -231,7 +231,7 @@ namespace WindowsFormsApplication1
             //read all images into memory
             List<Bitmap> images = new List<Bitmap>();
             Bitmap finalImage = null;
-            
+
             try
             {
                 int width = 0;
@@ -243,6 +243,9 @@ namespace WindowsFormsApplication1
                 {
                     string fileName = Path.GetFileNameWithoutExtension(image);
                     string className = GetClassName(fileName);
+
+                    // process the filename lick "en.wechat" to "wechat"
+                    fileName = fileName.Substring(fileName.LastIndexOf('.') + 1);
 
                     //create a Bitmap from the file and add it to the list
                     Bitmap bitmap = new Bitmap(image);
