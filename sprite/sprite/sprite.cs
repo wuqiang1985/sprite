@@ -474,7 +474,7 @@ namespace WindowsFormsApplication1
                     continue;
                 }
 
-                string name = ParseFileName(temp, indexConnector);
+                string name = ParseFileName(temp, Math.Max(indexConnector, indexUnderline));
                 if (string.IsNullOrEmpty(name))
                 {
                     //return ParseFileName(temp, indexUnderline);
