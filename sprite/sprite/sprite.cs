@@ -62,7 +62,7 @@ namespace WindowsFormsApplication1
         const string COMPRESS_FOLDER = "compressed";
 
         static List<string> pseudoClassList;
-        static string path = AppDomain.CurrentDomain.BaseDirectory;
+        static string path = AppDomain.CurrentDomain.BaseDirectory + "Build-Sprite";
 
         StringBuilder sbForStyle;
         StringBuilder sbForHtml;
@@ -103,7 +103,11 @@ namespace WindowsFormsApplication1
 
         private bool MakeDirectory(List<string> directories, string imagePath)
         {
-            string rootDirectory = Path.GetDirectoryName(imagePath) + @"\";
+            string rootDirectory = Path.GetDirectoryName(imagePath);
+            if (!rootDirectory.EndsWith(@"\"))
+            {
+                rootDirectory += @"\";
+            }
 
             try
             {
@@ -128,6 +132,12 @@ namespace WindowsFormsApplication1
             string imagePath = txtPath.Text.Trim();
             if (!string.IsNullOrEmpty(imagePath))
             {
+                if (Directory.Exists(path))
+                {
+                    DirectoryInfo di = new DirectoryInfo(path);
+                    di.Delete(true);
+                }
+
                 SpriteType type = rbtnVertical.Checked ? SpriteType.Vertical : SpriteType.Horizontal;
                 if (!chkAll.Checked)
                 {
@@ -196,7 +206,11 @@ namespace WindowsFormsApplication1
                     string imageUncompressedName = string.Format("{0}_uncompressed.png", imageName); ;
                     imageName = compressed ? imageUncompressedName : string.Format("{0}.png", imageName);
 
-                    string rootDirectory = Path.GetDirectoryName(imagePath) + @"\";
+                    string rootDirectory = Path.GetDirectoryName(imagePath);
+                    if (!rootDirectory.EndsWith(@"\"))
+                    {
+                        rootDirectory += @"\";
+                    }
                     string newDir = Path.Combine(path, directory.Replace(rootDirectory, string.Empty));
                     Bitmap mergedImage = CombineBitmap(images, spriteType, temp, newDir);
                     mergedImage.Save(string.Format("{0}\\{1}", newDir, imageName));
